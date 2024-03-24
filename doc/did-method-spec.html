@@ -1,0 +1,90 @@
+About
+The HRDKOREA (HRDKOREA wallet) DID method specification conforms to the requirements specified in the DID specification currently published by the W3C Credentials Community Group. For more information about DIDs and DID method specifications, please see the DID Primer and DID Spec.
+Qnet network is a consortium blockchain network operated by trusted institutions in South Korea. Qnet network operates based on HRDKOREA's ston ledger technology and aims to provide various blockchain services. Hrdkorea identity is a priority service, and we are currently operating the service under the name qnet. The HRDKOREA (HRDKOREA wallet) DID method is a method of storing DIDs and managing DID Documents in the qnet network.
+
+HRDKOREA DID Method
+The namestring that shall identify this DID method is: hrdkorea
+A DID that uses this method MUST begin with the following prefix: did:hrdkorea. Per the DID specification, this string MUST be in lowercase. The remainder of the DID, after the prefix, is the NSI specified below.
+Namespace Specific Identifier (NSI)
+The HRDKOREA DID scheme is defined by the following ABNF:
+hrdkorea-did = "did:hrdkorea:" *(":" network) ":" idstring 
+idstring = 21*22(base58char)
+network = "testnet" / "devnet"
+base58char = "1" / "2" / "3" / "4" / "5" / "6" / "7" / "8" / "9" / "A" / "B" / "C"
+    / "D" / "E" / "F" / "G" / "H" / "J" / "K" / "L" / "M" / "N" / "P" / "Q"
+    / "R" / "S" / "T" / "U" / "V" / "W" / "X" / "Y" / "Z" / "a" / "b" / "c"
+    / "d" / "e" / "f" / "g" / "h" / "i" / "j" / "k" / "m" / "n" / "o" / "p"
+    / "q" / "r" / "s" / "t" / "u" / "v" / "w" / "x" / "y" / "z"
+All HRDKOREA DIDs are base58 encoded using the Bitcoin/IPFS alphabets of a 16-byte uuid. The encoding uses most alphas and digits, omitting 0OIl to avoid readability problems. This gives an NSI length of either 21 or 22 characters, and it means that DIDs are case-sensitive and may not be case-normalized, even though the prefix is always lower-case.
+Optional a network may be specified to indicate which qnet network contains the DID Document.
+Identifier Generation Method
+The 16-byte uuid underlying a HRDKOREA DID can be generated in various ways--using standard uuid methods, for example, or by selecting the first 16 bytes of a 256 bit Ed25519 verification key (the public portion of the key pair).
+A convenient regex to match hrdkorea DIDs is:
+^[1-9A-HJ-NP-Za-km-z]{21,22}$
+A convenient regex to match the entire did string is:
+^did:hrdkorea(?:(testnet|devnet)):[1-9A-HJ-NP-Za-km-z]{21,22}$
+Examples
+Valid hrdkorea DIDs might be:
+        did:hrdkorea:HCXdNZTEC4hQNtoVXaaRhP
+        did:hrdkorea:testnet:SMi7CxBdvQemKU88zAnoL
+    
+CRUD Operations
+Create (Register)
+Creating an HRDKOREA DID is done through the process of submitting a transaction to the Qnet Network. The HRDKOREA DID value contains a cryptographic key pair and a public key. Also, for DID creation, the owner of an administrator-privileged DID must request the transaction. The qnet network verifies the authorization of the transaction requester by checking the DID and signature.
+The contents to be included in the requested transaction are:
+	•	Requester's DID
+	•	Requester's DID signature
+	•	DID to be created
+	•	Valid DID Document information
+Through this, a DID Document in did:hrdkorea format is generated. The example below shows the DID Document of did:hrdkorea:HCXdNZTEC4hQNtoVXaaRhP.
+        {
+          "@context": [
+            "https://www.w3.org/ns/did/v1",
+            "https://w3id.org/security/suites/ed25519-2018/v1"
+          ],
+          "id": "did:hrdkorea:HCXdNZTEC4hQNtoVXaaRhP",
+          "verificationMethod": [
+            {
+              "id": "did:hrdkorea:HCXdNZTEC4hQNtoVXaaRhP#key-1",
+              "type": "Ed25519VerificationKey2018",
+              "controller": "did:hrdkorea:HCXdNZTEC4hQNtoVXaaRhP",
+              "publicKeyBase58": "9q5LNP31xbCcQZoprB6ikyAxyuFadsQoJ2Yx9WCim6qi"
+            }
+          ],
+          "authentication": [
+            "did:hrdkorea:HCXdNZTEC4hQNtoVXaaRhP#key-1"
+          ],
+          "assertionMethod": [
+            "did:hrdkorea:HCXdNZTEC4hQNtoVXaaRhP#key-1"
+          ],
+          "service": [
+            {
+              "id": "did:hrdkorea:HCXdNZTEC4hQNtoVXaaRhP#didcomm-1",
+              "type": "DIDCommMessaging",
+              "serviceEndpoint": "https://endpoint.hrdkorea.io/did:hrdkorea:HCXdNZTEC4hQNtoVXaaRhP"
+            }
+          ]
+        }
+    
+Read (Resolve)
+Although the qnet network is a consortium blockchain network, anyone can perform an operation to read the HRDKOREA DID record because it aims for a public service. The response value is a DID Document and follows the same format as the above example.
+The content to be included in the requested transaction is:
+	•	DID to be queried
+Update (Replace)
+Replacing a DID can be requested by the owner of an administrator-privileged DID or the owner of the DID. After that, the DID Document is newly registered and the existing information is ignored.
+The contents to be included in the requested transaction are:
+	•	Requester's DID
+	•	Requester's DID signature
+	•	DID to be replaced
+	•	Valid DID Document information
+Delete (Revoke)
+Revoking a DID can be requested by the owner of an administrator-privileged DID or by the owner of the DID. After that, the authority of the corresponding DID is removed and the DID Document is deleted.
+The contents to be included in the requested transaction are:
+	•	Requester's DID
+	•	Requester's DID signature
+	•	DID to be revoked
+Security Considerations
+Qnet network operates based on the authority of the DID owner. Only the owner of the administrator-privilege DID can create a new DID, and the owner of the newly created DID can only manage their own DID Document. Based on these permission policies, an attacker's attack can be minimized. In particular, the administrator-privilege DID is managed only inside the Qnet network.
+Privacy Considerations
+Since the DID Document stored in the Qnet network contains only public information of a pseudonym, anonymity can be guaranteed. The only thing the DID owner should be aware of is that, since the DID Document is stored in the ledger, even if it is revoked, the existing information remains in the ledger. Concerns about this are ongoing.
+
